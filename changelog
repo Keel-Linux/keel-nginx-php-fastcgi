@@ -1,3 +1,25 @@
+turnkey-nginx-php-fastcgi-19.0 (2) turnkey; urgency=low
+
+  * Security: stop shipping /var/www/phpinfo.php, which published the whole
+    PHP configuration to anybody without authentication (semgrep
+    phpinfo-use). The landing page no longer links to it.
+
+  * Ship /var/www/keel-health.php instead, named after Keel Web's
+    /keel-health: it answers 200 with the plain-text body "ok" and nothing
+    else, which proves PHP executes through FastCGI. tests/v19.sh asserts
+    that exact body; tests/overlay.sh fails if any phpinfo file, call or
+    link is shipped in the overlay.
+
+  * Set expose_php = Off in every php.ini, so no response carries
+    X-Powered-By with the PHP version.
+
+  * The overlay is applied when the image is built; there is no package and
+    no maintainer script. A machine installed from an earlier image keeps
+    /var/www/phpinfo.php until it is removed by hand:
+    rm -f /var/www/phpinfo.php
+
+ -- Marcos Mendez <mendez.foto@gmail.com>  Wed, 07 Oct 2026 12:00:00 +0000
+
 turnkey-nginx-php-fastcgi-19.0 (1) turnkey; urgency=low
 
   * Upgrade the base distribution to Debian 13/Trixie.

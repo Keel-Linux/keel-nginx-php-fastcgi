@@ -5,6 +5,14 @@
 # test nginx config - if invalid will fail
 nginx -t
 
+# PHP names itself in no response header (X-Powered-By with its version).
+# Debian ships expose_php = On; the probe /keel-health.php is checked for
+# this by tests/v19.sh.
+for ini in /etc/php/*/*/php.ini; do
+    sed -i 's/^;\?[[:space:]]*expose_php[[:space:]]*=.*/expose_php = Off/' "$ini"
+    grep -qx 'expose_php = Off' "$ini"
+done
+
 # Trixie packages mysqltuner. Discard the mutable upstream copies downloaded
 # by the inherited MySQL profile so the installed command remains APT-managed.
 rm -f /usr/local/bin/mysqltuner \
