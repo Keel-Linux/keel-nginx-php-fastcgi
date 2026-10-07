@@ -1,0 +1,20 @@
+# Static checks of the overlay, on hosted runners: no phpinfo page, call or
+# link is shipped, and the PHP probe keel-health.php says "ok" and nothing
+# else. tests/v19.sh is the runtime acceptance on a built appliance and is
+# not run here.
+name: tests
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  overlay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: tests/overlay.sh
