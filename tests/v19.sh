@@ -12,9 +12,10 @@ password_file=/run/tkl-v19-tests/nginx-db-pass.$$
 response=/tmp/tkl-nginx-response.$$
 cookies=/tmp/tkl-nginx-adminer-cookies.$$
 policy=/tmp/tkl-nginx-policy.$$
+headers=/tmp/tkl-nginx-headers.$$
 
 cleanup() {
-    rm -f -- "$php_test" "$password_file" "$response" "$cookies" "$policy"
+    rm -f -- "$php_test" "$password_file" "$response" "$cookies" "$policy" "$headers"
     mysql --user=root --password="$db_password" \
         --execute="DROP DATABASE IF EXISTS \`$database\`;" >/dev/null 2>&1 || true
 }
@@ -42,9 +43,17 @@ curl --insecure --fail --silent --show-error https://127.0.0.1/ >"$response"
 grep -q 'TurnKey NGINX PHP FastCGI Server' "$response"
 grep -q ':12321' "$response"
 grep -q ':12322' "$response"
+# The PHP probe answers exactly "ok" and names PHP in no header
+# (expose_php = Off). It replaced phpinfo.php, which published the whole
+# PHP configuration. Port 80 redirects to 443 (tkl-default), so 443 is asked.
 curl --insecure --fail --silent --show-error \
-    https://127.0.0.1/phpinfo.php >"$response"
-grep -q 'PHP Version 8.4' "$response"
+    --dump-header "$headers" https://127.0.0.1/keel-health.php >"$response"
+printf 'ok' | cmp -s - "$response"
+if grep -qi '^x-powered-by:' "$headers"; then
+    echo 'keel-health.php sends X-Powered-By: expose_php is not Off' >&2
+    exit 1
+fi
+test ! -e "$document_root/phpinfo.php"
 
 mysql --user=root --password="$db_password" <<SQL
 CREATE DATABASE \`$database\`;
@@ -107,7 +116,7 @@ grep -Rqs '^Suites: trixie' /etc/apt/sources.list.d
 cat >"$result" <<EOF
 package_source=Debian 13 Trixie APT repositories for Nginx, PHP-FPM, MariaDB, Adminer and mysqltuner; TurnKey APT for Webmin modules
 installed_version=nginx $nginx_version; php-fpm $php_version; mariadb-server $mariadb_version; adminer $adminer_version; mysqltuner $mysqltuner_version
-runtime_checks=normal init; Nginx HTTPS landing and control-panel links; PHP 8.4 through FastCGI; MariaDB root login; database-backed PHP request; Adminer HTTPS and credential login; Debian-owned mysqltuner command; Webmin MariaDB and PHP modules
+runtime_checks=normal init; Nginx HTTPS landing and control-panel links; PHP through FastCGI (keel-health.php answers exactly ok, no X-Powered-By, no phpinfo.php); MariaDB root login; database-backed PHP request; Adminer HTTPS and credential login; Debian-owned mysqltuner command; Webmin MariaDB and PHP modules
 updater_command=apt-get update; apt-cache policy nginx php-fpm mariadb-server adminer mysqltuner
 updater_result=signed metadata refreshed; eligible candidates found; installed versions unchanged
 updater_channel=Debian Trixie and TurnKey Trixie APT repositories

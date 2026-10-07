@@ -47,10 +47,6 @@
                     <h2>Resources and references</h2>
                     <ul>
 
-                        <li>
-                          <a href="/phpinfo.php">NGINX PHP information</a>
-                          (to disable: rm /var/www/phpinfo.php)
-                        </li>
                         <li><a href="https://www.turnkeylinux.org/nginx-php-fastcgi">TurnKey appliance release notes</a></li>
                     </ul>
 
