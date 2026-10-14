@@ -1,0 +1,23 @@
+# Forgejo copy of .github/workflows/tests.yml (decision 0056): the same
+# jobs, with a runs-on line on each call of a reusable workflow,
+# because Forgejo runs a called workflow on the runner of the caller.
+# Static checks of the overlay, on hosted runners: no phpinfo page, call or
+# link is shipped, and the PHP probe keel-health.php says "ok" and nothing
+# else. tests/v19.sh is the runtime acceptance on a built appliance and is
+# not run here.
+name: tests
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  overlay:
+    runs-on: keel-host
+    steps:
+      - uses: actions/checkout@v7
+      - run: tests/overlay.sh
