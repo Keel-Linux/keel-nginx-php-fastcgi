@@ -1,13 +1,10 @@
-# Static checks of the overlay, on hosted runners: no phpinfo page, call or
-# link is shipped, and the PHP probe keel-health.php says "ok" and nothing
-# else. tests/v19.sh is the runtime acceptance on a built appliance and is
-# not run here.
+# Light CI on GitHub-hosted runners, for pull requests on the GitHub mirror
+# (decision 0056). The full CI is .forgejo/workflows on git.pop.coop, and
+# .forgejo/workflows/tests.yml has the notes on each job.
 name: tests
 
 on:
   pull_request:
-  push:
-    branches: [master]
 
 permissions:
   contents: read
@@ -16,5 +13,5 @@ jobs:
   overlay:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: tests/overlay.sh
